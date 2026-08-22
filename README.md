@@ -1,53 +1,50 @@
-# Forecasting-Alexandrium-Blooms
+# Forecasting Toxic Alexandrium Blooms Along the California Coast
 
-"""Config: constants and hyperparameters shared across all modules."""
+Machine learning models that forecast *Alexandrium* harmful algal bloom exceedances 1 to 3 weeks ahead, using shore-station data from California's CalHABMAP program.
 
-import warnings
+## Summary
 
-warnings.filterwarnings("ignore")
+- **Data**: 6,481 station-weeks from 14 CalHABMAP stations (2005–2026)
+- **Predictors**: chlorophyll-a, silicate, nitrite, temperature (selected via 6 feature-selection methods)
+- **Models**: XGBoost, Random Forest, a Bouquet-style decision tree, and an LSTM
+- **Thresholds**: elevated (≥1,000 cells/L) and alert (≥10,000 cells/L)
+- **Result**: XGBoost gets the highest AUROC in 5 of 6 threshold/horizon combos. All models fail to beat a naive baseline on regression, meaning current predictors flag risky weeks but cannot estimate bloom size.
 
-RANDOM_STATE = 42
+## Repo structure
 
-# ===== CONFIG =====
+```
+alexandrium-hab-forecasting/
+├── code/
+│   ├── config.py              # constants and final hyperparameters
+│   ├── data_prep.py           # load CSV, build station-week table, lag features, CV folds
+│   ├── descriptive_stats.py   # Table 1, Figure 2, Table 2, Tables 3A/3B
+│   ├── feature_selection.py   # Table 4 (6 methods), Figure 3 (correlation)
+│   ├── tuning.py              # Table 5 (hyperparameter search)
+│   ├── classification.py      # Table 6 (XGBoost, RF, Bouquet tree, LSTM)
+│   ├── feature_importance.py  # Table 7
+│   ├── regression.py          # Table 8
+│   └── main.py                # runs the full pipeline, prints every table
+├── requirements.txt
+└── README.md
+```
 
-EXCLUDE_STATIONS = ["HSB", "HUM", "TP"]  # stations with 0% Alexandrium data
+## Data
 
-RAW_PREDICTOR_COLS = {
-    "temp": "temp_degree_c",
-    "chl": "avg_chloro_mg_m3",
-    "nitrate": "nitrate_um",
-    "nitrite": "nitrite_um",
-    "ammonium": "ammonium_um",
-    "phosphate": "phosphate_um",
-    "silicate": "silicate_um",
-    "salinity": "salinity",
-}
-LAG_CANDIDATES = ["temp", "chl", "nitrate", "nitrite", "ammonium", "phosphate", "silicate"]  # no salinity
+Data comes from SCCOOS/CalHABMAP via their ERDDAP server:
+https://erddap.sccoos.org/erddap/
 
-THRESHOLD_ELEVATED = 1_000
-THRESHOLD_ALERT = 10_000
-ALL_THRESHOLDS = [100, 1_000, 5_000, 10_000, 20_000]
+Download the station CSV and save it as `calhabmap.csv` in the repo root, or update `DATA_PATH` in `code/main.py`.
 
-N_FOLDS = 8
-STOP_MARGIN = 0.002
-CV_XGB_PARAMS = dict(n_estimators=150, max_depth=4)  # scoring model for feature selection
+## Running
 
-FINAL_FEATURES = ["temp", "chl", "nitrite", "silicate"]  # using feature set found above
+```bash
+pip install -r requirements.txt
+cd code
+python main.py
+```
 
-# Classification hyperparameters
-FINAL_XGB_PARAMS = dict(
-    n_estimators=30, max_depth=2, learning_rate=0.03,
-    subsample=0.85, colsample_bytree=1.0, min_child_weight=3,
-)
-FINAL_RF_PARAMS = dict(n_estimators=300, max_depth=1, min_samples_leaf=10, max_features=None)
-FINAL_BOUQUET_PARAMS = dict(max_depth=2, min_samples_split=5, min_samples_leaf=5, criterion="gini")
-FINAL_LSTM_PARAMS = dict(hidden=64, dropout=0.3, lr=0.001, batch_size=64)
-SEQ_LEN = 8
-N_LSTM_SEEDS = 5
+This prints every table and figure data in the paper: exceedance prevalence, missingness-bias tests, Mood's median tests, feature selection, hyperparameter tuning, classification results, feature importance, and regression results.
 
-# Regression hyperparameters
-FINAL_XGB_REG_PARAMS = dict(n_estimators=20, max_depth=2, learning_rate=0.1, subsample=0.7)
-FINAL_RF_REG_PARAMS = dict(n_estimators=200, max_depth=2, min_samples_leaf=10)
-BOUQUET_REG_MAX_DEPTH = 5
+## Citation
 
-HORIZONS = (1, 2, 3)
+If you use this code, cite the paper: *Forecasting Toxic Alexandrium Blooms Along the California Coast*.
