@@ -8,7 +8,7 @@ Machine learning models that forecast *Alexandrium* harmful algal bloom exceedan
 - **Predictors**: chlorophyll-a, silicate, nitrite, temperature (selected via 6 feature-selection methods)
 - **Models**: XGBoost, Random Forest, a Bouquet-style decision tree, and an LSTM
 - **Thresholds**: elevated (≥1,000 cells/L) and alert (≥10,000 cells/L)
-- **Result**: XGBoost gets the highest AUROC in 5 of 6 threshold/horizon combos. All models fail to beat a naive baseline on regression, meaning current predictors flag risky weeks but cannot estimate bloom size.
+- **Result**: XGBoost achieves the highest AUROC in 5 of the 6 threshold and forecast-horizon combinations. All models fail to beat a naive baseline on regression, meaning current predictors flag risky weeks but cannot estimate bloom size.
 
 ## Repo structure
 
